@@ -6,6 +6,7 @@ import com.example.emsbackend.mapper.EmployeeMapper;
 import com.example.emsbackend.model.Employee;
 import com.example.emsbackend.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,5 +47,36 @@ public class EmployeeService implements IEmployeeService {
 
         return employeeDtos;
     }
+
+    @Override
+    public EmployeeDto updateEmployee(Long id, EmployeeDto employeeDtoUpdated) {
+
+        Employee employee = employeeRepository.getReferenceById(id);
+
+        if (employee == null) {
+            throw new ResourceNotFoundException("Employee is not existing with the following id :" + id);
+        }
+
+        employee.setFirstName(employeeDtoUpdated.getFirstName());
+        employee.setLastName(employeeDtoUpdated.getLastName());
+        employee.setEmail(employeeDtoUpdated.getEmail());
+
+        Employee updateEmployeeObj = employeeRepository.save(employee);
+
+        return EmployeeMapper.mapToEmployeeDto(updateEmployeeObj);
+    }
+
+    @Override
+    public void deleteEmployee(Long id) {
+        Employee employee = employeeRepository.getReferenceById(id);
+
+        if( employee == null ) {
+            throw new ResourceNotFoundException("Employee is not existing with the following id :" + id);
+        }
+
+        employeeRepository.deleteById(id);
+
+    }
+
 
 }
