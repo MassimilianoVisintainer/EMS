@@ -1,6 +1,7 @@
-import { useState } from "react"
-import { createEmployee } from "../services/EmployeeService";
+import { useState,useEffect } from "react"
+import { createEmployee, updateEmployee } from "../services/EmployeeService";
 import { useNavigate, useParams } from "react-router-dom";
+import { getEmployeeById } from "../services/EmployeeService";
 
 
 function EmployeeComponent() {
@@ -8,7 +9,7 @@ function EmployeeComponent() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-
+ 
   const {id} = useParams();
 
   const [errors, setErrors] = useState({
@@ -19,17 +20,21 @@ function EmployeeComponent() {
 
   const navigator = useNavigate();
 
-  function handleFirstName(e) {
-    setFirstName(e.target.value);
-  }
+  useEffect(() => {
+    if (id) {   
+      getEmployeeById(id)
+        .then((response) => {
+          setFirstName(response.data.firstName);
+          setLastName(response.data.lastName);
+          setEmail(response.data.email);
+        })
+        .catch(error => {
+          console.error(error); 
+        });
+    }
+  }, [id]);
 
-  function handleLastName(e) {
-    setLastName(e.target.value);
-  }
-
-  function handleEmail(e) {
-    setEmail(e.target.value);
-  }
+ 
 
   function saveEmployee(e) {
 
@@ -38,22 +43,28 @@ function EmployeeComponent() {
     if (validateForm()) {
       const employee = { firstName, lastName, email };
 
-      console.log(employee)
+     if (id) {
+      updateEmployee(id,employee).then((response) => {
+        console.log(response.data);
+      }).catch(error => {
+        console.error(error);
+      })
+
+     } else {
       createEmployee(employee).then((response) => {
         console.log(response.data);
       }).catch(error => {
         console.error(error);
       });
+     }
       navigator("/");
     }
 
   }
 
-
 function validateForm() {
 
   let isValid = true;
-
   const errosCopy = { ...errors };
 
   if (firstName.trim()) {
@@ -78,7 +89,6 @@ function validateForm() {
   }
 
   setErrors(errosCopy);
-
   return isValid;
 }
 
@@ -105,11 +115,11 @@ return (
               <label className="form-label"> First Name:</label>
               <input
                 type="text"
-                placeholder="Enter Employee First Name"
+                placeholder='Enter Employee First Name'
                 name="firstName"
                 value={firstName}
                 className={`form-control ${errors.firstName ? 'is-invalid' : ''}`}
-                onChange={handleFirstName}>
+                onChange={(e) => setFirstName(e.target.value)}>
               </input>
               {errors.firstName && <div className="invalid-feedback">{errors.firstName}</div>}
             </div>
@@ -117,11 +127,11 @@ return (
               <label className="form-label"> Last Name:</label>
               <input
                 type="text"
-                placeholder="Enter Employee Last Name"
+                placeholder= 'Enter Employee Last Name'
                 name="lastName"
                 value={lastName}
                 className={`form-control ${errors.lastName ? 'is-invalid' : ''}`}
-                onChange={handleLastName}>
+                onChange={(e) => setLastName(e.target.value)}>
               </input>
               {errors.lastName && <div className="invalid-feedback">{errors.lastName}</div>}
             </div>
@@ -129,15 +139,17 @@ return (
               <label className="form-label"> Email:</label>
               <input
                 type="text"
-                placeholder="Enter Employee Email"
+                placeholder= 'Enter Employee Email'
                 name="email"
                 value={email}
                 className={`form-control ${errors.email ? 'is-invalid' : ''}`}
-                onChange={handleEmail}>
+                onChange={(e) => setEmail(e.target.value)}>
               </input>
               {errors.email && <div className="invalid-feedback">{errors.email}</div>}
             </div>
-            <button onClick={saveEmployee}>Add Employee</button>
+            <button type="button" className="btn btn-dark" onClick={saveEmployee}>
+             Submit
+            </button>
           </form>
         </div>
       </div>
